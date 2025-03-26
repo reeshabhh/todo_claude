@@ -1,4 +1,6 @@
+import os
 import uuid
+from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -79,10 +81,22 @@ async def delete_todo(todo_id: str):
     raise HTTPException(status_code=404, detail="Todo not found")
 
 
+# Ensure static directory exists
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+
 # Mount the static files directory
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {"status": "healthy"}
+
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
